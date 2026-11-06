@@ -285,7 +285,7 @@ fun DataStoreMasterApp(){
             TopAppBar(
                 title = {Text("DataStore Master")},
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer
                 )
             )
         }
@@ -340,12 +340,14 @@ fun DataStoreMasterApp(){
                             }
                         }
                         Toast.makeText(context,"All Data Saved!", Toast.LENGTH_SHORT).show()
-                    }
+                    },
+                    modifier = Modifier.weight(1f)
                 ) {
                     Text(
                         text = "Save All"
                     )
                 }
+                Spacer(modifier = Modifier.width(8.dp))
                 Button(
                     onClick = {
                         scope.launch {
@@ -354,7 +356,8 @@ fun DataStoreMasterApp(){
                             }
                         }
                         Toast.makeText(context,"DataStore Cleared!",Toast.LENGTH_SHORT).show()
-                    }
+                    },
+                    modifier = Modifier.weight(1f)
                 ) {
                     Text(
                         text = "Clear All"

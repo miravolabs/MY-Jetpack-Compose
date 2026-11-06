@@ -43,7 +43,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="My Jetpack Compose"
+            android:label="My Compose"
             android:theme="@style/Theme.App.Starting"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
