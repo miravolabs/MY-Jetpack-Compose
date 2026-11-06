@@ -1,6 +1,6 @@
 package agecalabir.android.myjetpackcompose
 
-import agecalabir.android.myjetpackcompose.data_store.NoteApp
+import agecalabir.android.myjetpackcompose.data_store.DataStoreMasterApp
 import agecalabir.android.myjetpackcompose.ui.theme.MyJetpackComposeTheme
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -18,7 +18,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MyJetpackComposeTheme {
-                NoteApp()
+                DataStoreMasterApp()
             }
 
         }
