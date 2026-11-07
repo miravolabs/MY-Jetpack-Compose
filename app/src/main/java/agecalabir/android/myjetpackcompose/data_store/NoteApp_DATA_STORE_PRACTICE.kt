@@ -15,22 +15,29 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -38,6 +45,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -54,6 +62,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -405,3 +414,208 @@ fun DataStoreMasterApp(){
     }
 }
 
+// Data store practice 07/11/2026
+
+val Context.megaDataStore by preferencesDataStore("mega_storage")
+
+val KEY_NAME = stringPreferencesKey("user_name")
+val KEY_AGE = intPreferencesKey("user_age")
+val KEY_IS_PREMIUM = booleanPreferencesKey("is_premium")
+val KEY_APP_APP_RATING = floatPreferencesKey("app_rating")
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun UltimateDataStoreApp(){
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    val savedName by remember(context){
+        context.megaDataStore.data.map { prefs-> prefs[NAME_KEY] ?: "No Name Saved Yet" }
+    }.collectAsState(initial = "Loading...")
+
+    val savedAge by remember(context) {
+        context.megaDataStore.data.map { prefs -> prefs[AGE_KEY] ?: 0 }
+    }.collectAsState(initial = 0)
+
+    val isPremium by remember(context){
+        context.megaDataStore.data.map { prefs-> prefs[KEY_IS_PREMIUM] ?: false }
+    }.collectAsState(initial = false)
+
+    val savedRating by remember(context) {
+        context.megaDataStore.data.map { prefs-> prefs[KEY_APP_APP_RATING]?: 0.0f}
+    }.collectAsState(initial = 0.0f)
+
+    var nameInput by remember { mutableStateOf("") }
+    var ageInput by remember { mutableStateOf("") }
+    var premiumInput by remember { mutableStateOf(false) }
+    var ratingInput by remember { mutableFloatStateOf(0f) }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {Text("Ultimate DataStore")},
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            )
+        }
+    ) {paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(paddingValues)
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                ),
+                elevation = CardDefaults.cardElevation(4.dp)
+            ){
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text("Live DataStore Status:", fontWeight = FontWeight.Bold, fontSize = 20.sp,color = MaterialTheme.colorScheme.primary, fontFamily = Poppins)
+                    HorizontalDivider(color = Color.Gray, thickness = 2.dp)
+                    Text("Name: $savedName", fontSize = 16.sp)
+                    Text("Age: $savedAge", fontSize = 16.sp)
+                    Text("Premium User: ${if(isPremium) "Yes" else "No"}", fontSize = 16.sp)
+                    Text("App Rating: ${"%.1f".format(savedRating)} ⭐", fontSize = 16.sp)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            OutlinedTextField(
+                value = nameInput,
+                onValueChange = {nameInput = it},
+                label = {Text("Enter Name")},
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = ageInput,
+                onValueChange = {ageInput = it},
+                label = {Text("Enter Age")},
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ){
+                Text("Enable Premium Features?", fontSize = 16.sp)
+                Switch(
+                    checked = premiumInput,
+                    onCheckedChange = {premiumInput = it}
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text("Rate this app: ${"%.1f".format(ratingInput)}", modifier = Modifier.align(Alignment.Start))
+            Slider(
+                value = ratingInput,
+                onValueChange = {ratingInput = it},
+                valueRange = 0f..5f,
+                steps = 4
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Button(
+                onClick = {
+                    scope.launch {
+                        context.megaDataStore.edit { prefs->
+                            if(nameInput.isNotBlank()) prefs[KEY_NAME] = nameInput
+                            if(ageInput.isNotBlank()) prefs[KEY_AGE] = ageInput.toIntOrNull() ?: 0
+                            prefs[KEY_IS_PREMIUM] = premiumInput
+                            prefs[KEY_APP_APP_RATING] = ratingInput
+                        }
+                    }
+                    Toast.makeText(context,"All Data Saved!", Toast.LENGTH_SHORT).show()
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            ) {
+                Text("Save All Data", fontSize = 16.sp)
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ){
+                OutlinedButton(
+                    onClick = {
+                        scope.launch {
+                            context.megaDataStore.edit { prefs->
+                                prefs[KEY_APP_APP_RATING] = ratingInput
+                            }
+                        }
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Update Rating Only", fontSize = 16.sp)
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                OutlinedButton(
+                    onClick = {
+                        scope.launch {
+                            context.megaDataStore.edit {prefs->
+                                prefs.remove(KEY_IS_PREMIUM)
+                            }
+                        }
+                    },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {Text("Revoke Premium", fontSize = 16.sp) }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            ElevatedButton(
+                onClick = {
+                    scope.launch {
+                        context.megaDataStore.edit { prefs->
+                            prefs.clear()
+                        }
+                    }
+                    Toast.makeText(context, "DataStore Format Complete!", Toast.LENGTH_SHORT).show()
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.elevatedButtonColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer
+                )
+            ) {
+                Icon(Icons.Default.Delete, contentDescription = "Clear")
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Format/Clear DataStore", fontWeight = FontWeight.Bold)
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+        }
+    }
+}
