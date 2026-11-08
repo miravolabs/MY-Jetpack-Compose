@@ -16,17 +16,21 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -34,6 +38,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
@@ -64,10 +69,15 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 
 
 val Context.dataStore by preferencesDataStore(name = "note_storage")
@@ -482,7 +492,7 @@ fun UltimateDataStoreApp(){
             ){
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text("Live DataStore Status:", fontWeight = FontWeight.Bold, fontSize = 20.sp,color = MaterialTheme.colorScheme.primary, fontFamily = Poppins)
-                    HorizontalDivider(color = Color.Gray, thickness = 2.dp)
+                    HorizontalDivider(color = Color.Gray, thickness = 1.dp)
                     Text("Name: $savedName", fontSize = 16.sp)
                     Text("Age: $savedAge", fontSize = 16.sp)
                     Text("Premium User: ${if(isPremium) "Yes" else "No"}", fontSize = 16.sp)
@@ -616,6 +626,548 @@ fun UltimateDataStoreApp(){
 
             Spacer(modifier = Modifier.height(10.dp))
 
+        }
+    }
+}
+
+
+// Data Store Practice 08/11/2026
+
+val Context.grandMasterDataStore by preferencesDataStore(name = "miravo_core_setting")
+
+val KEY_USER_NAME = stringPreferencesKey("user_name")
+val KEY_USER_AGE = intPreferencesKey("user_age")
+val KEY_DARK_MODE = booleanPreferencesKey("dark_mode_enabled")
+val KEY_NOTIFICATIONS = booleanPreferencesKey("notifications_enabled")
+val KEY_UI_SCALE = floatPreferencesKey("ui_scale")
+val KEY_LAST_LOGIN = longPreferencesKey("last_login_timestamp")
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DataStoreGrandMasterApp() {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    // Read DataStore
+
+    val name by remember(context) {
+        context.grandMasterDataStore.data.map { prefs ->
+            prefs[KEY_USER_NAME] ?: "Guest User"
+        }
+    }.collectAsState(initial = "Loading...")
+
+    val age by remember(context) {
+        context.grandMasterDataStore.data.map { prefs ->
+            prefs[KEY_USER_AGE] ?: 0
+        }
+    }.collectAsState(initial = 0)
+
+    val isDarkMode by remember(context) {
+        context.grandMasterDataStore.data.map { prefs ->
+            prefs[KEY_DARK_MODE] ?: false
+        }
+    }.collectAsState(initial = false)
+
+    val isNotifEnable by remember(context) {
+        context.grandMasterDataStore.data.map {
+            it[KEY_NOTIFICATIONS] ?: true// prefs , it
+        }
+    }.collectAsState(initial = true)
+
+    val uiScale by remember(context) {
+        context.grandMasterDataStore.data.map {
+            it[KEY_UI_SCALE] ?: 1.0f
+        }
+    }.collectAsState(initial = 1.0f)
+
+    val lastLogin by remember(context) {
+        context.grandMasterDataStore.data.map {
+            it[KEY_LAST_LOGIN] ?: 0L
+        }
+    }.collectAsState(initial = 0L)
+
+    // User Input
+    var inputName by remember { mutableStateOf("") }
+    var inputAge by remember { mutableStateOf("") }
+    var inputDarkMode by remember { mutableStateOf(false) }
+    var inputNotif by remember { mutableStateOf(true) }
+    var inputUiScale by remember { mutableFloatStateOf(1.0f) }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Setting DashBoard", fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    Icon(
+                        Icons.Default.Settings,
+                        contentDescription = "Setting",
+                        modifier = Modifier.padding(horizontal = 12.dp)
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(paddingValues)
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                ),
+                shape = RoundedCornerShape(16.dp),
+                elevation = CardDefaults.cardElevation(8.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        "Live DataStore Monitor",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer
+                    )
+                    Divider(modifier = Modifier.padding(vertical = 8.dp))
+                    Text("Name: $name")
+                    Text("Age: $age")
+                    Text("Dark Mode: ${if (isDarkMode) "ON" else "OFF"}")
+                    Text("Notifications: ${if (isNotifEnable) "ON" else "OFF"}")
+                    Text("UI Scale: ${"%.2f".format(uiScale)}x")
+                    Text("Last Action: $lastLogin")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                "Profile Setting",
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(Alignment.Start)
+            )
+            OutlinedTextField(
+                value = inputName,
+                onValueChange = { inputName = it },
+                label = { Text("Update Name") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                value = inputAge,
+                onValueChange = { inputAge = it },
+                label = { Text("Update Age") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                "App Preferences",
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(Alignment.Start)
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Enable Dark Mode")
+                Switch(
+                    checked = inputDarkMode,
+                    onCheckedChange = { inputDarkMode = it }
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Allow Notification")
+                Switch(
+                    checked = inputNotif,
+                    onCheckedChange = { inputNotif = it }
+                )
+            }
+            Text(
+                "UI Scale: ${"%.1f".format(inputUiScale)}",
+                modifier = Modifier.align(Alignment.Start)
+            )
+            Slider(
+                value = inputUiScale,
+                onValueChange = { inputUiScale = it },
+                valueRange = 0.5f..2.0f
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Button(
+                onClick = {
+                    scope.launch {
+                        context.grandMasterDataStore.edit {
+                            if (inputName.isNotBlank()) it[KEY_USER_NAME] = inputName
+                            if (inputAge.isNotBlank()) it[KEY_USER_AGE] =
+                                inputAge.toIntOrNull() ?: 0
+                            it[KEY_DARK_MODE] = inputDarkMode
+                            it[KEY_NOTIFICATIONS] = inputNotif
+                            it[KEY_UI_SCALE] = inputUiScale
+                            it[KEY_LAST_LOGIN] = System.currentTimeMillis()
+                        }
+                    }
+                    Toast.makeText(context, "Settings Updated!", Toast.LENGTH_SHORT).show()
+                },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text("Save All Setting", fontSize = 16.sp, modifier = Modifier.padding(4.dp))
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                OutlinedButton(
+                    onClick = {
+                        scope.launch {
+                            context.grandMasterDataStore.edit {
+                                it[KEY_DARK_MODE] = !isDarkMode
+                            }
+                            Toast.makeText(
+                                context,
+                                "Toggle Theme Successfully!",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Toggle Theme Only", fontSize = 12.sp)
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                OutlinedButton(
+                    onClick = {
+                        scope.launch {
+                            context.grandMasterDataStore.edit {
+                                it.remove(KEY_USER_NAME)
+                            }
+                        }
+                        Toast.makeText(
+                            context,
+                            "User Name Removed Successfully!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Red)
+                ) {
+                    Text(text = "Clear Name", fontSize = 12.sp)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            OutlinedCard(
+                colors = CardDefaults.outlinedCardColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer.copy(
+                        alpha = 0.3f
+                    )
+                ),
+                border = CardDefaults.outlinedCardBorder(true).copy(brush = SolidColor(Color.Red))
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("Danger Zone", color = Color.Red, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    ElevatedButton(
+                        onClick = {
+                            scope.launch {
+                                context.grandMasterDataStore.edit {
+                                    it.clear()
+                                }
+                            }
+                            Toast.makeText(context, "All Data Wiped!", Toast.LENGTH_SHORT).show()
+                        },
+                        colors = ButtonDefaults.elevatedButtonColors(
+                            containerColor = Color.Red,
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Icon(Icons.Default.Delete, contentDescription = "Wipe")
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Factory Reset DataStore")
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+        }
+    }
+}
+
+
+// Practice Get Started Screen
+
+
+val Context.myDataStore by preferencesDataStore("data_store")
+val IS_FIRST_TIME_KEY = booleanPreferencesKey("is_first_time")
+// new key
+val USER_NAME_KEY = stringPreferencesKey("user_name")
+
+/*
+@Composable
+fun AppNavigation(){
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    val isFirstTime by remember(context) {
+        context.myDataStore.data.map {
+            it[IS_FIRST_TIME_KEY] ?: true
+        }
+    }.collectAsState(initial =  true)
+
+    if(isFirstTime){
+        OnboardingScreen(
+            onGetStartedClick = {
+                scope.launch {
+                    context.myDataStore.edit {
+                        it[IS_FIRST_TIME_KEY] = false
+                    }
+                }
+            }
+        )
+    } else {
+        HomeScreen()
+    }
+}
+/*
+
+ */
+@Composable
+fun OnboardingScreen(onGetStartedClick: () -> Unit){
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("Welcome to MiravoLabs!", style = MaterialTheme.typography.headlineMedium)
+        Button(onClick = onGetStartedClick) {
+            Text("Get Started")
+        }
+    }
+}
+
+@Composable
+fun HomeScreen(){
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("Home Screen", style = MaterialTheme.typography.headlineLarge)
+        Text("You have skipped the Onboarding!")
+    }
+}
+
+
+
+@Serializable
+sealed interface DataStorePracticeApp{
+    @Serializable
+    object OnboardingRoute
+    @Serializable
+    object HomeRoure
+}
+
+@Composable
+fun AppNavigationProfessional(){
+
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val navController = rememberNavController()
+
+    val isFirstTimeState by remember(context) {
+        context.myDataStore.data.map {
+            it[IS_FIRST_TIME_KEY] ?: true
+        }
+    }.collectAsState(initial =  null)
+
+    if(isFirstTimeState == null){
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
+            contentAlignment = Alignment.Center
+        ){
+            CircularProgressIndicator()
+        }
+        return
+    }
+
+    NavHost(
+        navController = navController,
+        startDestination = if(isFirstTimeState == true ) DataStorePracticeApp.OnboardingRoute else DataStorePracticeApp.HomeRoure
+    ){
+        composable<DataStorePracticeApp.OnboardingRoute>{
+            OnboardingScreen(
+                onGetStartedClick = {
+                    scope.launch {
+                        context.myDataStore.edit {
+                            it[IS_FIRST_TIME_KEY] = false
+                        }
+                    }
+                    navController.navigate(DataStorePracticeApp.HomeRoure){
+                        popUpTo<DataStorePracticeApp.OnboardingRoute>{inclusive = true}
+                    }
+                }
+            )
+        }
+        composable<DataStorePracticeApp.HomeRoure>{
+            HomeScreen()
+        }
+    }
+}
+*/
+
+@Composable
+fun OnboardingScreen(onGetStartedClick: (String) -> Unit) {
+    val context = LocalContext.current
+    var nameInput by remember { mutableStateOf("") } // নাম ইনপুটের স্টেট
+
+    Column(
+        modifier = Modifier.fillMaxSize().padding(16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("Welcome to MiravoLabs!", style = MaterialTheme.typography.headlineMedium)
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        OutlinedTextField(
+            value = nameInput,
+            onValueChange = { nameInput = it },
+            label = { Text("Enter your name") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(0.8f)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                if (nameInput.isNotBlank()) {
+                    onGetStartedClick(nameInput) // নামটা NavHost-এ পাঠিয়ে দিলাম
+                } else {
+                    Toast.makeText(context, "Please enter your name!", Toast.LENGTH_SHORT).show()
+                }
+            },
+            modifier = Modifier.fillMaxWidth(0.8f)
+        ) {
+            Text("Get Started")
+        }
+    }
+}
+
+@Composable
+fun HomeScreen() {
+    val context = LocalContext.current
+
+    val savedName by remember(context) {
+        context.myDataStore.data.map { preferences ->
+            preferences[USER_NAME_KEY] ?: "Guest"
+        }
+    }.collectAsState(initial = "Loading...")
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("Home Screen", style = MaterialTheme.typography.headlineLarge)
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "Welcome back, $savedName! 👋",
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary
+        )
+    }
+}
+
+
+
+@Serializable
+sealed interface DataStorePracticeApp{
+    @Serializable
+    object OnboardingRoute
+    @Serializable
+    object HomeRoure
+}
+
+@Composable
+fun AppNavigationProfessional(){
+
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val navController = rememberNavController()
+
+    val isFirstTimeState by remember(context) {
+        context.myDataStore.data.map {
+            it[IS_FIRST_TIME_KEY] ?: true
+        }
+    }.collectAsState(initial =  null)
+
+    if(isFirstTimeState == null){
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
+            contentAlignment = Alignment.Center
+        ){
+            CircularProgressIndicator()
+        }
+        return
+    }
+
+    NavHost(
+        navController = navController,
+        startDestination = if(isFirstTimeState == true ) DataStorePracticeApp.OnboardingRoute else DataStorePracticeApp.HomeRoure
+    ){
+        composable<DataStorePracticeApp.OnboardingRoute>{
+            OnboardingScreen(
+                onGetStartedClick = {userName->
+                    scope.launch {
+                        context.myDataStore.edit {
+                            it[IS_FIRST_TIME_KEY] = false
+                            it[USER_NAME_KEY] = userName
+                        }
+                    }
+                    navController.navigate(DataStorePracticeApp.HomeRoure){
+                        popUpTo<DataStorePracticeApp.OnboardingRoute>{inclusive = true}
+                    }
+                }
+            )
+        }
+        composable<DataStorePracticeApp.HomeRoure>{
+            HomeScreen()
         }
     }
 }
