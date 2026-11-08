@@ -1,6 +1,5 @@
 package agecalabir.android.myjetpackcompose
 
-import agecalabir.android.myjetpackcompose.data_store.AppNavigationProfessional
 import agecalabir.android.myjetpackcompose.ui.theme.MyJetpackComposeTheme
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -17,7 +16,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MyJetpackComposeTheme {
-                AppNavigationProfessional()
+
             }
         }
     }
