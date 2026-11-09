@@ -1,11 +1,13 @@
 package agecalabir.android.myjetpackcompose
 
+import agecalabir.android.myjetpackcompose.data_store.MasterViewModelScreen
 import agecalabir.android.myjetpackcompose.ui.theme.MyJetpackComposeTheme
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -16,7 +18,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MyJetpackComposeTheme {
-
+                MasterViewModelScreen(viewModel = viewModel())
             }
         }
     }
