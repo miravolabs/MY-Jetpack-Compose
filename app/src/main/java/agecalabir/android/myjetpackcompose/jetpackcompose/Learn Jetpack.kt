@@ -169,6 +169,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import coil3.compose.AsyncImage
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -293,6 +294,8 @@ Spacer(modifier = Modifier.height(20.dp))
 }
 val myvenillacolor = Color(0xFFF1FEC8)
 val mycosmiccolor = Color(0xFF23212C)
+
+/*
 @Preview
 @Composable
 fun LearnCompose(){
@@ -390,6 +393,8 @@ fun LearnCompose(){
         }
     }
 }
+
+ */
 val wineash = Color(0xFF32292F)
 @Preview
 @Composable
@@ -4681,4 +4686,18 @@ fun SettingScreen(onLogout : () -> Unit){
             Text("Log Out")
         }
     }
+}
+
+// Coil Library Use
+@Composable
+fun CoilImageLearning(){
+
+    AsyncImage(
+        model =  "https://almahvuhmhdmhawjicmx.supabase.co/storage/v1/object/public/miravo-assets/branding/abir_pic.jpg",
+        contentDescription = "Profile Photo",
+        modifier = Modifier
+            .size(120.dp)
+            .clip(CircleShape),
+        contentScale = ContentScale.Crop
+    )
 }
