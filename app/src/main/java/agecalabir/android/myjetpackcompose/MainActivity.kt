@@ -1,6 +1,6 @@
 package agecalabir.android.myjetpackcompose
 
-import agecalabir.android.myjetpackcompose.data_store.AppOpenCountAndRatedScreen
+import agecalabir.android.myjetpackcompose.navigation_practice_master.FoodApp
 import agecalabir.android.myjetpackcompose.ui.theme.MyJetpackComposeTheme
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -11,18 +11,14 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
-
         super.onCreate(savedInstanceState)
-
-       enableEdgeToEdge()
+        enableEdgeToEdge()
 
         setContent {
-
             MyJetpackComposeTheme {
-                AppOpenCountAndRatedScreen()
+                FoodApp()
             }
         }
     }
