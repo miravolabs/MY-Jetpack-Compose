@@ -1059,7 +1059,148 @@ fun SlidingNavigationBar(
     navItems: List<BottomNavItem>,
     selectedIndex: Int,
     onItemClick: (BottomNavItem) -> Unit,
+    modifier: Modifier = Modifier,package miravolabs.textbot.textbot.ui.components
+
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import miravolabs.textbot.textbot.ui.screen.AppBottomNavItem
+
+@Composable
+fun SlidingNavigationBar(
+    navItems: List<AppBottomNavItem>,
+    selectedIndex: Int,
+    onItemClick: (AppBottomNavItem) -> Unit,
     modifier: Modifier = Modifier,
+    containerColor: Color = MaterialTheme.colorScheme.background,
+    indicatorColor: Color = MaterialTheme.colorScheme.primary,
+    selectedIconColor: Color = MaterialTheme.colorScheme.background,
+    selectedTextColor: Color = MaterialTheme.colorScheme.primary,
+    unselectedColor: Color = MaterialTheme.colorScheme.surfaceVariant
+) {
+    val animatedIndex by animateFloatAsState(
+        targetValue = selectedIndex.toFloat(),
+        animationSpec = spring(
+            dampingRatio = 0.8f,
+            stiffness = Spring.StiffnessLow + 100f
+        ),
+        label = "SlidingPillIndex"
+    )
+
+    Surface(
+        color = containerColor,
+        shadowElevation = 8.dp,
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .windowInsetsPadding(WindowInsets.navigationBars)
+                .height(80.dp)
+                .drawBehind {
+                    if (navItems.isEmpty()) return@drawBehind
+
+                    val tabWidth = size.width / navItems.size
+                    val pillWidth = 64.dp.toPx()
+                    val pillHeight = 32.dp.toPx()
+
+                    val currentTabCenter = (animatedIndex * tabWidth) + (tabWidth / 2f)
+                    val pillLeft = currentTabCenter - (pillWidth / 2f)
+                    val pillTop = 12.dp.toPx()
+
+                    drawRoundRect(
+                        color = indicatorColor,
+                        topLeft = Offset(x = pillLeft, y = pillTop),
+                        size = Size(width = pillWidth, height = pillHeight),
+                        cornerRadius = CornerRadius(x = pillHeight / 2f, y = pillHeight / 2f)
+                    )
+                },
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            navItems.forEachIndexed { index, item ->
+                val isSelected = selectedIndex == index
+                val interactionSource = remember { MutableInteractionSource() }
+
+                val iconTint by animateColorAsState(
+                    targetValue = if (isSelected) selectedIconColor else unselectedColor,
+                    animationSpec = tween(durationMillis = 200),
+                    label = "IconTint"
+                )
+                val textColor by animateColorAsState(
+                    targetValue = if (isSelected) selectedTextColor else unselectedColor,
+                    animationSpec = tween(durationMillis = 200),
+                    label = "TextColor"
+                )
+
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .clickable(
+                            interactionSource = interactionSource,
+                            indication = null,
+                            onClick = { onItemClick(item) }
+                        )
+                        .padding(top = 12.dp, bottom = 12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top
+                ) {
+                    Box(
+                        modifier = Modifier.size(width = 64.dp, height = 32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = item.icon,
+                            contentDescription = item.title,
+                            tint = iconTint
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = item.title,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = textColor,
+                        maxLines = 1
+                    )
+                }
+            }
+        }
+    }
+}
     containerColor: Color = Color.White,
     indicatorColor: Color = wineash,
     selectedIconColor: Color = Color.White,

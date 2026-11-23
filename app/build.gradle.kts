@@ -4,7 +4,6 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
-    id("kotlin-parcelize")
 }
 
 configurations.all {
@@ -13,6 +12,7 @@ configurations.all {
         force("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.2.0")
         force("org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.2.0")
         force("org.jetbrains.kotlin:kotlin-reflect:2.2.0")
+        force("org.jetbrains.kotlin:kotlin-parcelize-runtime:2.2.0")
     }
 }
 
@@ -104,4 +104,5 @@ dependencies {
     // Coil Dependency
     implementation("io.coil-kt.coil3:coil-compose:3.6.3")
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.6.3")
+
 }
