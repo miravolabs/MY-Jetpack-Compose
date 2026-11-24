@@ -100,7 +100,7 @@ fun SimpleRoomNotesScreen(){
         Room.databaseBuilder(
             context.applicationContext,
             NoteDatabase::class.java,
-            "notes_database_db"
+            "notes_database.db"
         ).build()
     }
 
