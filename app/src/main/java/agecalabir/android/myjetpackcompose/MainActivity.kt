@@ -1,15 +1,12 @@
 package agecalabir.android.myjetpackcompose
 
-import agecalabir.android.myjetpackcompose.navigation_practice_master.InvoiceSystemNavigation
 import agecalabir.android.myjetpackcompose.ui.theme.MyJetpackComposeTheme
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import dagger.hilt.android.AndroidEntryPoint
 
-@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -19,12 +16,16 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MyJetpackComposeTheme {
-                InvoiceSystemNavigation()
+
             }
         }
     }
 }
-
+/*
+*git add .
+*git commit -m "Navigation Practice"
+*git push origin main
+* */
 /*
 @Composable
 fun CounterScreen(viewModel: CounterViewModel = viewModel()){

@@ -1,16 +1,6 @@
 package agecalabir.android.myjetpackcompose.todoapp.viewmodel
 
-import agecalabir.android.myjetpackcompose.todoapp.data.TaskItem
-import agecalabir.android.myjetpackcompose.todoapp.data.TaskRepository
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
-import javax.inject.Inject
-
+/*
 @HiltViewModel
 class TaskViewModel @Inject constructor(private var repository: TaskRepository) : ViewModel()
 {
@@ -46,3 +36,5 @@ class TaskViewModel @Inject constructor(private var repository: TaskRepository) 
         }
     }
 }
+
+ */

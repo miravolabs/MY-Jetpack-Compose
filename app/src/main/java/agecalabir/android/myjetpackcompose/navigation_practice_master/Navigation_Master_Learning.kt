@@ -1519,7 +1519,7 @@ fun CreateInvoiceScreen(onGenerateVoucher : (InvoiceVoucher) -> Unit){
                 val parsedAmount = amountText.toDoubleOrNull() ?: 0.0
                 if (clientName.isNotBlank() && serviceTitle.isNotBlank() && parsedAmount > 0.0) {
                     val voucher = InvoiceVoucher(
-                        invoiceId = "INV-\${System.currentTimeMillis().toString().takeLast(6)}",
+                        invoiceId = "INV-${System.currentTimeMillis().toString().takeLast(6)}",
                         clientName = clientName,
                         serviceTitle = serviceTitle,
                         subtotal = parsedAmount,

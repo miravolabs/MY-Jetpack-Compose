@@ -1,9 +1,6 @@
 package agecalabir.android.myjetpackcompose.todoapp.data
 
-import kotlinx.coroutines.flow.Flow
-import javax.inject.Inject
-import javax.inject.Singleton
-
+/*-
 @Singleton
 class TaskRepository @Inject constructor(private val taskDao : TaskDao){
     val allTasks : Flow<List<TaskItem>> = taskDao.getAllTasks()
@@ -20,3 +17,5 @@ class TaskRepository @Inject constructor(private val taskDao : TaskDao){
         taskDao.deleteTask(task)
     }
 }
+
+ */
