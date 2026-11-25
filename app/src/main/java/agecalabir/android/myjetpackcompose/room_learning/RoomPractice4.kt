@@ -1,6 +1,8 @@
 package agecalabir.android.myjetpackcompose.room_learning
 
 import agecalabir.android.myjetpackcompose.ui.theme.Poppins
+import android.app.Application
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -50,6 +52,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.room.Dao
 import androidx.room.Database
 import androidx.room.Delete
@@ -62,6 +67,9 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 // Room practice 4 // 24/11/2026
@@ -98,27 +106,69 @@ interface TaskDao{
 @Database(entities = [TaskItem::class] , version = 1 , exportSchema = false)
 abstract class TaskDatabase : RoomDatabase() {
     abstract val dao : TaskDao
+
+    companion object {
+        @Volatile
+        private var INSTANCE : TaskDatabase? = null
+
+        fun getDatabase(context : Context) : TaskDatabase {
+            return INSTANCE?: synchronized(this) {
+                Room.databaseBuilder(
+                    context.applicationContext,
+                    TaskDatabase::class.java,
+                    "task_database.db"
+                ).build().also { INSTANCE = it }
+            }
+        }
+    }
+}
+
+// ViewModel
+
+class TaskViewModel(application: Application) : AndroidViewModel(application){
+
+    private val dao = TaskDatabase.getDatabase(application).dao
+
+    val taskList : StateFlow<List<TaskItem>> = dao.getAllTasks()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    fun insertTask(title : String){
+        viewModelScope.launch {
+            dao.insertTask(TaskItem(task = title , isDone = false))
+        }
+    }
+
+    fun updateTask(task: TaskItem){
+        viewModelScope.launch {
+            dao.updateTask(task)
+        }
+    }
+
+    fun deleteTask(task : TaskItem){
+        viewModelScope.launch {
+            dao.deleteTask(task)
+        }
+    }
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TaskApp(){
+fun TaskApp(
+    viewModel: TaskViewModel = viewModel()
+){
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-
-    val db = remember {
-        Room.databaseBuilder(
-            context.applicationContext,
-            TaskDatabase::class.java,
-            "task_database.db"
-        ).build()
-    }
 
     var inputTaskName by remember { mutableStateOf("") }
 
     var showNewTaskDialog by remember { mutableStateOf(false) }
 
-    val tasksList by db.dao.getAllTasks().collectAsState(initial = emptyList())
+    val tasksList by viewModel.taskList.collectAsState()
 
     if(showNewTaskDialog){
         Dialog(
@@ -161,14 +211,7 @@ fun TaskApp(){
                         onClick = {
                             if(inputTaskName.isNotBlank()){
 
-                                val newTask = TaskItem(
-                                    task = inputTaskName,
-                                    isDone = false
-                                )
-
-                                scope.launch {
-                                    db.dao.insertTask(newTask)
-                                }
+                               viewModel.insertTask(inputTaskName)
 
                                 showNewTaskDialog = false
                             } else Toast.makeText(context,"Please Enter your task",Toast.LENGTH_SHORT).show()
@@ -214,7 +257,8 @@ fun TaskApp(){
                 .padding(innerPadding)
                 .padding(horizontal = 12.dp)
         ) {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            LazyColumn(modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 items(items = tasksList, key = {it.id}){
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -222,7 +266,7 @@ fun TaskApp(){
                         shape = RoundedCornerShape(12.dp),
                         elevation = CardDefaults.cardElevation(2.dp)
                     ){
-                        Column{
+                        Column(modifier = Modifier.padding(16.dp)){
                             Row(modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
@@ -237,9 +281,7 @@ fun TaskApp(){
                                 )
                                 IconButton(
                                     onClick = {
-                                        scope.launch {
-                                            db.dao.deleteTask(it)
-                                        }
+                                       viewModel.deleteTask(it)
                                     },
                                     colors = IconButtonDefaults.iconButtonColors(
                                         contentColor = Color.Red,
@@ -259,15 +301,12 @@ fun TaskApp(){
                                 Text(
                                     text = if(it.isDone) "Done" else "Remaining",
                                     fontSize = 14.sp,
-                                    color = if(it.isDone) Color.Gray.copy(alpha = 0.8f) else Color.Red.copy(alpha = 0.8f)
+                                    color = if(it.isDone) Color.Green.copy(alpha = 0.8f) else Color.Red.copy(alpha = 0.8f)
                                 )
                                 Checkbox(
                                     checked = it.isDone,
-                                    onCheckedChange = {newValue ->
-                                        scope.launch {
-                                            val updateTask = it.copy(isDone = newValue)
-                                            db.dao.updateTask(updateTask)
-                                        }
+                                    onCheckedChange = {isChecked ->
+                                        viewModel.updateTask(it.copy(isDone = isChecked))
                                     }
                                 )
                             }

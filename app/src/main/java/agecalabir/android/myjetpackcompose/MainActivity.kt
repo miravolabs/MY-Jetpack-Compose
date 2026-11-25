@@ -1,6 +1,6 @@
 package agecalabir.android.myjetpackcompose
 
-import agecalabir.android.myjetpackcompose.room_learning.TaskApp
+import agecalabir.android.myjetpackcompose.room_learning.DevVaultApp
 import agecalabir.android.myjetpackcompose.ui.theme.MyJetpackComposeTheme
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -17,7 +17,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MyJetpackComposeTheme {
-                TaskApp()
+                DevVaultApp()
             }
         }
     }
